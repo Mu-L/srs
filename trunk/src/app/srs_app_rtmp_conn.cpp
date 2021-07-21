@@ -943,18 +943,12 @@ srs_error_t SrsRtmpConn::acquire_publish(SrsLiveSource* source)
     srs_error_t err = srs_success;
     
     SrsRequest* req = info->req;
-	
-    // @see https://github.com/ossrs/srs/issues/2364
-    // Check whether GB28181 stream is busy.
-#if defined(SRS_GB28181)
-    if (_srs_gb28181 != NULL) {
-        SrsGb28181RtmpMuxer* gb28181 = _srs_gb28181->fetch_rtmpmuxer(req->stream);
-        if (gb28181 != NULL) {
-            return srs_error_new(ERROR_SYSTEM_STREAM_BUSY, "gb28181 stream %s busy", req->get_stream_url().c_str());
-        }
-    }
-#endif
 
+    // Check whether RTMP stream is busy.
+    if (!source->can_publish(info->edge)) {
+        return srs_error_new(ERROR_SYSTEM_STREAM_BUSY, "rtmp: stream %s is busy", req->get_stream_url().c_str());
+    }
+    
     // Check whether RTC stream is busy.
 #ifdef SRS_RTC
     SrsRtcSource *rtc = NULL;
@@ -966,15 +960,10 @@ srs_error_t SrsRtmpConn::acquire_publish(SrsLiveSource* source)
         }
 
         if (!rtc->can_publish()) {
-            return srs_error_new(ERROR_RTC_SOURCE_BUSY, "rtc stream %s busy", req->get_stream_url().c_str());
+            return srs_error_new(ERROR_SYSTEM_STREAM_BUSY, "rtc stream %s busy", req->get_stream_url().c_str());
         }
     }
 #endif
-
-    // Check whether RTMP stream is busy.
-    if (!source->can_publish(info->edge)) {
-        return srs_error_new(ERROR_SYSTEM_STREAM_BUSY, "rtmp: stream %s is busy", req->get_stream_url().c_str());
-    }
 
     // Bridge to RTC streaming.
 #if defined(SRS_RTC) && defined(SRS_FFMPEG_FIT)

@@ -81,9 +81,6 @@ srs_error_t do_main(int argc, char** argv)
 
     // TODO: support both little and big endian.
     srs_assert(srs_is_little_endian());
-
-    // For RTC to generating random ICE username.
-    ::srandom((unsigned long)(srs_update_system_time() | (::getpid()<<13)));
     
     // for gperf gmp or gcp,
     // should never enable it when not enabled for performance issue.
@@ -92,14 +89,6 @@ srs_error_t do_main(int argc, char** argv)
 #endif
 #ifdef SRS_GPERF_CP
     ProfilerStart("gperf.srs.gcp");
-#endif
-    
-    // directly compile error when these two macro defines.
-#if defined(SRS_GPERF_MC) && defined(SRS_GPERF_MP)
-#error ("option --with-gmc confict with --with-gmp, "
-    "@see: http://google-perftools.googlecode.com/svn/trunk/doc/heap_checker.html\n"
-    "Note that since the heap-checker uses the heap-profiling framework internally, "
-    "it is not possible to run both the heap-checker and heap profiler at the same time");
 #endif
     
     // never use gmp to check memory leak.

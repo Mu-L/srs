@@ -102,7 +102,6 @@ extern bool srs_config_dvr_is_plan_session(std::string plan);
 extern bool srs_stream_caster_is_udp(std::string caster);
 extern bool srs_stream_caster_is_rtsp(std::string caster);
 extern bool srs_stream_caster_is_flv(std::string caster);
-extern bool srs_stream_caster_is_gb28181(std::string caster);
 // Whether the dvr_apply active the stream specified by req.
 extern bool srs_config_apply_filter(SrsConfDirective* dvr_apply, SrsRequest* req);
 
@@ -458,6 +457,8 @@ public:
     virtual std::string get_work_dir();
     // Whether use asprocess mode.
     virtual bool get_asprocess();
+    // Whether query the latest available version of SRS.
+    virtual bool whether_query_latest_version();
     // Whether empty client IP is ok.
     virtual bool empty_ip_ok();
     // Get the start wait in ms for gracefully quit.
@@ -501,22 +502,6 @@ public:
     virtual int get_stream_caster_rtp_port_min(SrsConfDirective* conf);
     // Get the max udp port for rtp of stream caster rtsp.
     virtual int get_stream_caster_rtp_port_max(SrsConfDirective* conf);
-
-    virtual srs_utime_t get_stream_caster_gb28181_rtp_idle_timeout(SrsConfDirective* conf);
-    virtual srs_utime_t get_stream_caster_gb28181_ack_timeout(SrsConfDirective* conf);
-    virtual srs_utime_t get_stream_caster_gb28181_keepalive_timeout(SrsConfDirective* conf);
-    virtual bool get_stream_caster_gb28181_audio_enable(SrsConfDirective* conf);
-    virtual bool get_stream_caster_gb28181_jitterbuffer_enable(SrsConfDirective* conf);
-    virtual std::string get_stream_caster_gb28181_host(SrsConfDirective* conf);
-    virtual std::string get_stream_caster_gb28181_serial(SrsConfDirective* conf);
-    virtual std::string get_stream_caster_gb28181_realm(SrsConfDirective* conf);
-    virtual bool get_stream_caster_gb28181_wait_keyframe(SrsConfDirective* conf);
-    virtual bool get_stream_caster_gb28181_sip_enable(SrsConfDirective* conf);
-    virtual bool get_stream_caster_gb28181_sip_auto_play(SrsConfDirective* conf);
-    virtual int get_stream_caster_gb28181_sip_listen(SrsConfDirective* conf);
-    virtual bool get_stream_caster_gb28181_sip_invite_port_fixed(SrsConfDirective* conf);
-    virtual bool get_stream_caster_gb28181_auto_create_channel(SrsConfDirective* conf);
-    virtual srs_utime_t get_stream_caster_gb28181_sip_query_catalog_interval(SrsConfDirective* conf);
 
 // rtc section
 public:

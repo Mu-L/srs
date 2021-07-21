@@ -19,8 +19,6 @@
 #include <srs_app_listener.hpp>
 #include <srs_app_conn.hpp>
 #include <srs_service_st.hpp>
-#include <srs_app_gb28181.hpp>
-#include <srs_app_gb28181_sip.hpp>
 #include <srs_app_hourglass.hpp>
 
 class SrsServer;
@@ -37,8 +35,7 @@ class SrsTcpListener;
 class SrsAppCasterFlv;
 class SrsRtspCaster;
 class SrsResourceManager;
-class SrsGb28181Caster;
-
+class SrsLatestVersion;
 
 // The listener type for server to identify the connection,
 // that is, use different type to process the connection.
@@ -56,10 +53,6 @@ enum SrsListenerType
     SrsListenerRtsp = 4,
     // TCP stream, FLV stream over HTTP.
     SrsListenerFlv = 5,
-    // UDP stream, gb28181 ps stream over rtp, 
-    SrsListenerGb28181RtpMux = 6,
-    // UDP gb28181 sip server
-    SrsListenerGb28181Sip = 7,
     // HTTPS api,
     SrsListenerHttpsApi = 8,
     // HTTPS stream,
@@ -151,33 +144,6 @@ public:
     virtual ~SrsUdpCasterListener();
 };
 
-#ifdef SRS_GB28181
-
-// A UDP gb28181 listener, for sip and rtp stream mux server.
-class SrsGb28181Listener :  public SrsUdpStreamListener
-{
-public:
-    SrsGb28181Listener(SrsServer* svr, SrsListenerType t, SrsConfDirective* c);
-    virtual ~SrsGb28181Listener();
-};
-
-class SrsGb28181TcpListener : public SrsListener, public ISrsTcpHandler
-{
-private:
-	SrsTcpListener* listener;
-	SrsGb28181Caster* caster;
-public:
-	SrsGb28181TcpListener(SrsServer* svr, SrsListenerType t, SrsConfDirective* c);
-	virtual ~SrsGb28181TcpListener();
-public:
-	virtual srs_error_t listen(std::string i, int p);
-// Interface ISrsTcpHandler
-public:
-	virtual srs_error_t on_tcp_client(srs_netfd_t stfd);
-};
-
-#endif
-
 // Convert signal to io,
 // @see: st-1.9/docs/notes.html
 class SrsSignalManager : public ISrsCoroutineHandler
@@ -267,6 +233,8 @@ private:
     std::vector<SrsListener*> listeners;
     // Signal manager which convert gignal to io message.
     SrsSignalManager* signal_manager;
+    // To query the latest available version of SRS.
+    SrsLatestVersion* latest_version_;
     // Handle in server cycle.
     ISrsServerCycle* handler;
     // User send the signal, convert to variable.
@@ -340,9 +308,6 @@ private:
     virtual srs_error_t listen_http_stream();
     virtual srs_error_t listen_https_stream();
     virtual srs_error_t listen_stream_caster();
-#ifdef SRS_GB28181
-    virtual srs_error_t listen_gb28181_sip(SrsConfDirective* c);
-#endif
     // Close the listeners for specified type,
     // Remove the listen object from manager.
     virtual void close_listeners(SrsListenerType type);
