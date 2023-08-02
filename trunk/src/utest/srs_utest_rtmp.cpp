@@ -1208,16 +1208,20 @@ VOID TEST(ProtocolRTMPTest, RecvMessage3)
     }
 
     if (true) {
-        EXPECT_STREQ("Play", srs_client_type_string(SrsRtmpConnPlay).c_str());
+        EXPECT_STREQ("rtmp-play", srs_client_type_string(SrsRtmpConnPlay).c_str());
+        EXPECT_STREQ("rtc-play", srs_client_type_string(SrsRtcConnPlay).c_str());
+        EXPECT_STREQ("rtc-publish", srs_client_type_string(SrsRtcConnPublish).c_str());
         EXPECT_STREQ("flash-publish", srs_client_type_string(SrsRtmpConnFlashPublish).c_str());
         EXPECT_STREQ("fmle-publish", srs_client_type_string(SrsRtmpConnFMLEPublish).c_str());
         EXPECT_STREQ("haivision-publish", srs_client_type_string(SrsRtmpConnHaivisionPublish).c_str());
         EXPECT_STREQ("Unknown", srs_client_type_string(SrsRtmpConnType(0x0f)).c_str());
 
         EXPECT_TRUE(srs_client_type_is_publish(SrsRtmpConnFlashPublish));
+        EXPECT_TRUE(srs_client_type_is_publish(SrsRtcConnPublish));
         EXPECT_TRUE(srs_client_type_is_publish(SrsRtmpConnFMLEPublish));
         EXPECT_TRUE(srs_client_type_is_publish(SrsRtmpConnHaivisionPublish));
         EXPECT_FALSE(srs_client_type_is_publish(SrsRtmpConnPlay));
+        EXPECT_FALSE(srs_client_type_is_publish(SrsRtcConnPlay));
     }
 }
 
@@ -3382,6 +3386,20 @@ VOID TEST(ProtocolRTMPTest, DiscoveryTcUrl)
         EXPECT_STREQ("show", stream.c_str());
         EXPECT_EQ(1935, port);
         EXPECT_STREQ("?key=abc&&vhost=demo.com", param.c_str());
+    }
+
+    if (true) {
+        int port; std::string tcUrl, schema, ip, vhost, app, stream, param;
+
+        tcUrl = "rtmp://winlin.cn/live"; stream= "show?key=abc&&domain=demo.com";
+        srs_discovery_tc_url(tcUrl, schema, ip, vhost, app, stream, port, param);
+        EXPECT_STREQ("rtmp", schema.c_str());
+        EXPECT_STREQ("winlin.cn", ip.c_str());
+        EXPECT_STREQ("demo.com", vhost.c_str());
+        EXPECT_STREQ("live", app.c_str());
+        EXPECT_STREQ("show", stream.c_str());
+        EXPECT_EQ(1935, port);
+        EXPECT_STREQ("?key=abc&&domain=demo.com", param.c_str());
     }
 
     // vhost in app

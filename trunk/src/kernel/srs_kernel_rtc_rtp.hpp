@@ -61,6 +61,10 @@ inline int16_t srs_rtp_seq_distance(const uint16_t& prev_value, const uint16_t& 
 {
     return (int16_t)(value - prev_value);
 }
+inline int32_t srs_rtp_ts_distance(const uint32_t& prev_value, const uint32_t& value)
+{
+    return (int32_t)(value - prev_value);
+}
 
 // For map to compare the sequence of RTP.
 struct SrsSeqCompareLess {
@@ -294,6 +298,8 @@ private:
     int cached_payload_size;
     // The helper handler for decoder, use RAW payload if NULL.
     ISrsRtspPacketDecodeHandler* decode_handler;
+private:
+    int64_t avsync_time_;
 public:
     SrsRtpPacket();
     virtual ~SrsRtpPacket();
@@ -329,6 +335,8 @@ public:
     virtual srs_error_t decode(SrsBuffer* buf);
 public:
     bool is_keyframe();
+    void set_avsync_time(int64_t avsync_time) { avsync_time_ = avsync_time; }
+    int64_t get_avsync_time() const { return avsync_time_; }
 };
 
 // Single payload data.

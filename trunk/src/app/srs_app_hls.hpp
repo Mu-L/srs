@@ -57,6 +57,8 @@ public:
     virtual ~SrsHlsSegment();
 public:
     void config_cipher(unsigned char* key,unsigned char* iv);
+    // replace the placeholder
+    virtual srs_error_t rename();
 };
 
 // The hls async call: on_hls
@@ -153,8 +155,10 @@ private:
     // The current writing segment.
     SrsHlsSegment* current;
     // The ts context, to keep cc continous between ts.
-    // @see https://github.com/ossrs/srs/issues/375
     SrsTsContext* context;
+private:
+    // Latest audio codec, parsed from stream.
+    SrsAudioCodecId latest_acodec_;
 public:
     SrsHlsMuxer();
     virtual ~SrsHlsMuxer();
@@ -165,6 +169,9 @@ public:
     virtual std::string ts_url();
     virtual srs_utime_t duration();
     virtual int deviation();
+public:
+    SrsAudioCodecId latest_acodec();
+    void set_latest_acodec(SrsAudioCodecId v);
 public:
     // Initialize the hls muxer.
     virtual srs_error_t initialize();
@@ -187,7 +194,6 @@ public:
     virtual bool wait_keyframe();
     // Whether segment absolutely overflow, for pure audio to reap segment,
     // that is whether the current segment duration>=2*(the segment in config)
-    // @see https://github.com/ossrs/srs/issues/151#issuecomment-71155184
     virtual bool is_segment_absolutely_overflow();
 public:
     // Whether current hls muxer is pure audio mode.

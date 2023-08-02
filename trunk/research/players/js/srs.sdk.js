@@ -7,6 +7,14 @@
 
 'use strict';
 
+function SrsError(name, message) {
+    this.name = name;
+    this.message = message;
+    this.stack = (new Error()).stack;
+}
+SrsError.prototype = Object.create(Error.prototype);
+SrsError.prototype.constructor = SrsError;
+
 // Depends on adapter-7.4.0.min.js from https://github.com/webrtc/adapter
 // Async-awat-prmise based SRS RTC Publisher.
 function SrsRtcPublisherAsync() {
@@ -33,8 +41,8 @@ function SrsRtcPublisherAsync() {
     //      webrtc://r.ossrs.net:11985/live/mystream
     // or set the api server to myapi.domain.com:
     //      webrtc://myapi.domain.com/live/livestream
-    // or set the candidate(ip) of answer:
-    //      webrtc://r.ossrs.net/live/livestream?eip=39.107.238.185
+    // or set the candidate(eip) of answer:
+    //      webrtc://r.ossrs.net/live/livestream?candidate=39.107.238.185
     // or force to access https API:
     //      webrtc://r.ossrs.net/live/livestream?schema=https
     // or use plaintext, without SRTP:
@@ -46,7 +54,12 @@ function SrsRtcPublisherAsync() {
         var conf = self.__internal.prepareUrl(url);
         self.pc.addTransceiver("audio", {direction: "sendonly"});
         self.pc.addTransceiver("video", {direction: "sendonly"});
+        //self.pc.addTransceiver("video", {direction: "sendonly"});
+        //self.pc.addTransceiver("audio", {direction: "sendonly"});
 
+        if (!navigator.mediaDevices && window.location.protocol === 'http:' && window.location.hostname !== 'localhost') {
+            throw new SrsError('HttpsRequiredError', `Please use HTTPS or localhost to publish, read https://github.com/ossrs/srs/issues/2762#issuecomment-983147576`);
+        }
         var stream = await navigator.mediaDevices.getUserMedia(self.constraints);
 
         // @see https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection/addStream#Migrating_to_addTrack
@@ -182,6 +195,12 @@ function SrsRtcPublisherAsync() {
 
             var port = a.port;
             if (!port) {
+                // Finger out by webrtc url, if contains http or https port, to overwrite default 1985.
+                if (schema === 'webrtc' && url.indexOf(`webrtc://${a.host}:`) === 0) {
+                    port = (url.indexOf(`webrtc://${a.host}:80`) === 0) ? 80 : 443;
+                }
+
+                // Guess by schema.
                 if (schema === 'http') {
                     port = 80;
                 } else if (schema === 'https') {
@@ -264,6 +283,7 @@ function SrsRtcPlayerAsync() {
     //      webrtc://r.ossrs.net/live/livestream
     // or specifies the API port:
     //      webrtc://r.ossrs.net:11985/live/livestream
+    //      webrtc://r.ossrs.net:80/live/livestream
     // or autostart the play:
     //      webrtc://r.ossrs.net/live/livestream?autostart=true
     // or change the app from live to myapp:
@@ -272,8 +292,8 @@ function SrsRtcPlayerAsync() {
     //      webrtc://r.ossrs.net:11985/live/mystream
     // or set the api server to myapi.domain.com:
     //      webrtc://myapi.domain.com/live/livestream
-    // or set the candidate(ip) of answer:
-    //      webrtc://r.ossrs.net/live/livestream?eip=39.107.238.185
+    // or set the candidate(eip) of answer:
+    //      webrtc://r.ossrs.net/live/livestream?candidate=39.107.238.185
     // or force to access https API:
     //      webrtc://r.ossrs.net/live/livestream?schema=https
     // or use plaintext, without SRTP:
@@ -285,6 +305,8 @@ function SrsRtcPlayerAsync() {
         var conf = self.__internal.prepareUrl(url);
         self.pc.addTransceiver("audio", {direction: "recvonly"});
         self.pc.addTransceiver("video", {direction: "recvonly"});
+        //self.pc.addTransceiver("video", {direction: "recvonly"});
+        //self.pc.addTransceiver("audio", {direction: "recvonly"});
 
         var offer = await self.pc.createOffer();
         await self.pc.setLocalDescription(offer);
@@ -410,6 +432,12 @@ function SrsRtcPlayerAsync() {
 
             var port = a.port;
             if (!port) {
+                // Finger out by webrtc url, if contains http or https port, to overwrite default 1985.
+                if (schema === 'webrtc' && url.indexOf(`webrtc://${a.host}:`) === 0) {
+                    port = (url.indexOf(`webrtc://${a.host}:80`) === 0) ? 80 : 443;
+                }
+
+                // Guess by schema.
                 if (schema === 'http') {
                     port = 80;
                 } else if (schema === 'https') {

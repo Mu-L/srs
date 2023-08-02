@@ -587,6 +587,9 @@ srs_error_t SrsLiveStream::do_serve_http(ISrsHttpResponseWriter* w, ISrsHttpMess
     SrsHttpMessage* hr = dynamic_cast<SrsHttpMessage*>(r);
     SrsHttpConn* hc = dynamic_cast<SrsHttpConn*>(hr->connection());
     
+    // update client ip
+    req->ip = hc->remote_ip();    
+
     // update the statistic when source disconveried.
     SrsStatistic* stat = SrsStatistic::instance();
     if ((err = stat->on_client(_srs_context->get_id().c_str(), req, hc, SrsRtmpConnPlay)) != srs_success) {
@@ -770,7 +773,9 @@ void SrsLiveStream::http_hooks_on_stop(ISrsHttpMessage* r)
 srs_error_t SrsLiveStream::streaming_send_messages(ISrsBufferEncoder* enc, SrsSharedPtrMessage** msgs, int nb_msgs)
 {
     srs_error_t err = srs_success;
-    
+
+    // TODO: In gop cache, we know both the audio and video codec, so we should notice the encoder, which might depends
+    // on setting the correct codec information, for example, HTTP-TS or HLS will write PMT.
     for (int i = 0; i < nb_msgs; i++) {
         SrsSharedPtrMessage* msg = msgs[i];
         
@@ -925,7 +930,6 @@ srs_error_t SrsHttpStreamServer::http_mount(SrsLiveSource* s, SrsRequest* r)
         // mount the http flv stream.
         // we must register the handler, then start the thread,
         // for the thread will cause thread switch context.
-        // @see https://github.com/ossrs/srs/issues/404
         if ((err = mux.handle(mount, entry->stream)) != srs_success) {
             return srs_error_wrap(err, "http: mount flv stream for vhost=%s failed", sid.c_str());
         }

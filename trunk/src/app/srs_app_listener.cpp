@@ -25,6 +25,7 @@ using namespace std;
 #include <srs_app_utility.hpp>
 #include <srs_kernel_utility.hpp>
 #include <srs_kernel_buffer.hpp>
+#include <srs_app_pithy_print.hpp>
 
 #include <srs_protocol_kbps.hpp>
 
@@ -651,7 +652,7 @@ srs_error_t SrsUdpMuxListener::cycle()
             if (pps_last > 10000 || pps_average > 10000) {
                 pps_unit = "(w)"; pps_last /= 10000; pps_average /= 10000;
             } else if (pps_last > 1000 || pps_average > 1000) {
-                pps_unit = "(k)"; pps_last /= 10000; pps_average /= 10000;
+                pps_unit = "(k)"; pps_last /= 1000; pps_average /= 1000;
             }
 
             srs_trace("<- RTC RECV #%d, udp %" PRId64 ", pps %d/%d%s, schedule %" PRId64,
